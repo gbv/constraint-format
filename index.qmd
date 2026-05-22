@@ -1,0 +1,125 @@
+---
+title: Constraint Format
+subtitle: Preliminary Draft
+#doi: 10.5281/zenodo......
+authors:
+#- name: Jakob Voß
+#  orcid: 0000-0002-7613-4123
+#  affiliations:
+#   - name: Verbundzentrale des GBV (VZG)
+abstract: |
+ This document specifies a set of data formats for pattern-based quality analysis.
+---
+
+# Introduction
+
+...
+
+## Overview
+
+- A [Constraint Pattern] is an abstract definition of a function that gets a set of parameters and a document as input and returns an analysis result report
+- A [Constraint] is a reference to a constraint pattern with all parameters set to specific values
+- A [Constraint Template] is a reference to a constraint with optional parameter values and a sentence where part of the sentence are mapped to parameters
+- An [Analysis Result] lists elements of a document together with references to constraints and whether their conditions have been met in the document
+
+## Conformance requirements
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 ([RFC 2119] and [RFC 8174]) when, and only when, they appear in all capitals, as shown here.
+
+<!--Only section @sec-errors to @sec-dimensions, excluding examples and notes, and the [list of normative references](#normative-references) are normative parts of this specification.-->
+
+# Parameters
+
+_Here we need to define data types (number, list, XPath expression...)_
+
+# Constraint Pattern
+
+An **Constraint Pattern** (or **Pattern**) is a JSON object with:
+
+...
+
+# Constraint
+
+An **Constraint** is a JSON object with: 
+
+...
+
+# Constraint Template
+
+An **Constraint Template** (or **Template**) is a JSON object with:
+
+...
+
+# Analysis Result
+
+The analysis result format is based on [Validation Error Format](https://gbv.github.io/validation-error-format/).
+
+
+# References
+
+[XPath]: https://www.w3.org/TR/xpath/
+[XPath 1.0]: https://www.w3.org/TR/xpath-10/
+
+## Normative References
+
+[RFC 2119]: https://tools.ietf.org/html/rfc2119
+[RFC 5234]: https://tools.ietf.org/html/rfc5234
+[RFC 8174]: https://tools.ietf.org/html/rfc8174
+[RFC 8259]: https://tools.ietf.org/html/rfc8259
+
+- Berners-Lee, T. and Fielding, R. and Masinter, L.: _Uniform Resource Identifier (URI): Generic Syntax_.
+  RFC 3986, January 2005,
+  <http://www.rfc-editor.org/info/rfc3986>.
+
+- Bradner, S.: _Key words for use in RFCs to Indicate Requirement Levels_.
+  BCP 14, RFC 2119, March 1997,
+  <http://www.rfc-editor.org/info/rfc2119>.
+              
+- Bray, T.: _The JavaScript Object Notation (JSON) Data Interchange Format_.
+  RFC 8259, December 2017. <https://tools.ietf.org/html/rfc8259>
+
+<!--
+- Bray, T. et. al.: _Namespaces in XML 1.0 (Third Edition)_.
+  W3C Recommendation, December 2009.
+  <https://www.w3.org/TR/REC-xml-names/>
+  
+- Bryan, P and Zyp, K. and Nottigham, M.: *JavaScript Object Notation (JSON) Pointer*.
+  RFC 6901, April 2023. <https://tools.ietf.org/html/rfc6901>
+
+- D. Crocker and P. Overell: *Augmented BNF for Syntax Specifications: ABNF*.
+  RFC 5234, January 2008.
+  <https://www.rfc-editor.org/rfc/rfc5234>
+
+- Leiba, B.:  _Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words_.
+  BCP 14, RFC 8174, May 2017.
+  <http://www.rfc-editor.org/info/rfc8174>.
+
+-->
+
+- Voß, J: _Validation Error Format_.
+  May 2026
+  <https://gbv.github.io/validation-error-format/>
+
+## Informative references
+
+...
+
+<!--
+- [JSON Schema](https://json-schema.org/) schema language
+
+- J. Clark and S. DeRose: *XML Path Language (XPath) Version 1.0. 
+  W3C Recommendation, November 1999.
+  <https://www.w3.org/TR/xpath-10/>
+
+- [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) defines an extensible error format with fields `type` (`types` in this format), `status`, `title`, `detail` (`message` in this format), `instance` (`position` but as one URI). The example given in the specification is similar to this format.
+
+-->
+
+# Appendices {.unnumbered}
+
+## JSON Schemas {.unnumbered}
+
+Constraint, Constraint Patterns and Constraint Templates can be validated each with one of the following non-normative JSON Schemas:
+
+...
+
