@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -57,7 +92,7 @@ ul.task-list li input[type="checkbox"] {
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
       <h1 class="title">Constraint Format</h1>
-            <p class="subtitle lead">Preliminary Draft</p>
+            <p class="subtitle lead">Very preliminary draft</p>
           </div>
 
     
@@ -102,7 +137,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview"><span class="header-section-number">1.1</span> Overview</a></li>
   <li><a href="#conformance-requirements" id="toc-conformance-requirements" class="nav-link" data-scroll-target="#conformance-requirements"><span class="header-section-number">1.2</span> Conformance requirements</a></li>
   </ul></li>
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters"><span class="header-section-number">2</span> Parameters</a></li>
+  <li><a href="#data-model" id="toc-data-model" class="nav-link" data-scroll-target="#data-model"><span class="header-section-number">2</span> Data Model</a></li>
   <li><a href="#constraint-pattern" id="toc-constraint-pattern" class="nav-link" data-scroll-target="#constraint-pattern"><span class="header-section-number">3</span> Constraint Pattern</a></li>
   <li><a href="#constraint" id="toc-constraint" class="nav-link" data-scroll-target="#constraint"><span class="header-section-number">4</span> Constraint</a></li>
   <li><a href="#constraint-template" id="toc-constraint-template" class="nav-link" data-scroll-target="#constraint-template"><span class="header-section-number">5</span> Constraint Template</a></li>
@@ -135,6 +170,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 data-number="1.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1.1</span> Overview</h2>
 <ul>
 <li>A <a href="#constraint-pattern">Constraint Pattern</a> is an abstract definition of a function that gets a set of parameters and a document as input and returns an analysis result report</li>
+<li>A <a href="#data-model">Data Model</a> is a set of documented elements from a specific data format</li>
 <li>A <a href="#constraint">Constraint</a> is a reference to a constraint pattern with all parameters set to specific values</li>
 <li>A <a href="#constraint-template">Constraint Template</a> is a reference to a constraint with optional parameter values and a sentence where part of the sentence are mapped to parameters</li>
 <li>An <a href="#analysis-result">Analysis Result</a> lists elements of a document together with references to constraints and whether their conditions have been met in the document</li>
@@ -146,24 +182,121 @@ ul.task-list li input[type="checkbox"] {
 <!--Only section @sec-errors to @sec-dimensions, excluding examples and notes, and the [list of normative references](#normative-references) are normative parts of this specification.-->
 </section>
 </section>
-<section id="parameters" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Parameters</h1>
-<p><em>Here we need to define data types (number, list, XPath expression…)</em></p>
+<section id="data-model" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Data Model</h1>
+<p>A <strong>Data Model</strong> is a JSON object with:</p>
+<ul>
+<li><code>id</code> - identifier of the model</li>
+<li><code>title</code> - title of the model</li>
+<li><code>format</code> - the underlying base format (<code>xml</code>, <code>json</code>, <code>rdf</code>, <code>csv</code>, <code>pica</code>… this list needs to be defiend)</li>
+<li><code>elements</code> - a set of elements, given as JSON array. Each element is a JSON object with:
+<ul>
+<li><code>path</code> - machine-processable location of the element. Syntax and semantics depends on the <code>format</code>, for instance format <code>xml</code> implies XPath syntax</li>
+<li><code>label</code> - human-readable label, tagged by language code for multilinguality</li>
+</ul></li>
+</ul>
+<p>Data models can often be derived from schema files (XML Schema, JSON Schema, Avram Schema…) by extraction of elements and labels.</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"id"</span><span class="fu">:</span> <span class="st">"lido-1.1"</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"LIDO 1.1"</span><span class="fu">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"format"</span><span class="fu">:</span> <span class="st">"xml"</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"elements"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"path"</span><span class="fu">:</span> <span class="st">"//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"label"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"en"</span><span class="fu">:</span> <span class="st">"Resource Representation"</span> <span class="fu">}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"path"</span><span class="fu">:</span> <span class="st">"//@*[name()='lido-type']"</span><span class="fu">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"label"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"en"</span><span class="fu">:</span> <span class="st">"Type"</span> <span class="fu">}</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="constraint-pattern" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Constraint Pattern</h1>
 <p>An <strong>Constraint Pattern</strong> (or <strong>Pattern</strong>) is a JSON object with:</p>
-<p>…</p>
+<ul>
+<li><code>id</code> - identifier of the pattern</li>
+<li><code>description</code> - human-readble description (English)</li>
+<li><code>parameters</code> - parameters of the pattern, given as JSON object mapping parameter name to parameter definition. Each parameter definition is a JSON Objects with
+<ul>
+<li><code>type</code> - the data type. One of <code>path</code>, <code>number</code>, <code>comparator</code>, <code>list</code>… (this needs to be defined)</li>
+</ul></li>
+</ul>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"id"</span><span class="fu">:</span> <span class="st">"MandAtt"</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"Checks that an element contains another element"</span><span class="fu">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"parameters"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"elem"</span> <span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"path"</span> <span class="fu">},</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"prop"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"path"</span> <span class="fu">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="constraint" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Constraint</h1>
-<p>An <strong>Constraint</strong> is a JSON object with:</p>
-<p>…</p>
+<p>A <strong>Constraint</strong> is a JSON object with:</p>
+<ul>
+<li><code>id</code> …</li>
+<li><code>format</code> …</li>
+<li><code>model</code> …</li>
+<li><code>pattern</code> REQUIRED …</li>
+<li><code>fragments</code> OPTIONAL, only meant for communication with humans. MUST be ignored for execution/analysis!</li>
+<li><code>parameters</code> parameter values. If <code>fragments</code> is given, <code>parameters</code> MUST be derived automatically from <code>fragments</code> for consistency</li>
+</ul>
+<p>Property names MUST match parameter names of the referenced <code>pattern</code></p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"id"</span><span class="fu">:</span> <span class="st">"Q04.8a"</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"format"</span><span class="fu">:</span> <span class="st">"xml"</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model"</span><span class="fu">:</span> <span class="st">"lido-1.1"</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Resource Representation Has Required Type"</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"MandAtt"</span><span class="fu">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"fragments"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"Each"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"parameter"</span><span class="fu">:</span> <span class="st">"elem"</span><span class="fu">,</span> </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="st">"//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"has a"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"parameter"</span><span class="fu">:</span> <span class="st">"prop"</span><span class="fu">,</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="st">"//@*[name()='lido-type']"</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"."</span> <span class="fu">}</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"parameter"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>     <span class="dt">"elem"</span><span class="fu">:</span> <span class="st">"//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"</span><span class="fu">,</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>     <span class="dt">"prop"</span><span class="fu">:</span> <span class="st">"//@*[name()='lido-type']"</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"keywords"</span><span class="fu">:</span> <span class="ot">[</span> <span class="st">"DDB"</span> <span class="ot">]</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Example (minimal form for checking/execution/analysis):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"MandAtt"</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"format"</span><span class="fu">:</span> <span class="st">"xml"</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"parameters"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>     <span class="dt">"elem"</span><span class="fu">:</span> <span class="st">"//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"</span><span class="fu">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>     <span class="dt">"prop"</span><span class="fu">:</span> <span class="st">"//@*[name()='lido-type']"</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="constraint-template" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Constraint Template</h1>
-<p>An <strong>Constraint Template</strong> (or <strong>Template</strong>) is a JSON object with:</p>
+<p>A <strong>Constraint Template</strong> (or <strong>Template</strong>) is a <a href="#constraint">Constraint</a> with some or all parameters not set.</p>
 <p>…</p>
+<p>Example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"MandAtt"</span><span class="fu">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"fragments"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"Each"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"parameter"</span><span class="fu">:</span> <span class="st">"elem"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"has a"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"parameter"</span><span class="fu">:</span> <span class="st">"prop"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"."</span> <span class="fu">}</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="analysis-result" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Analysis Result</h1>
