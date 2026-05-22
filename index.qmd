@@ -1,12 +1,21 @@
 ---
 title: Constraint Format
-subtitle: Preliminary Draft
+subtitle: Very preliminary draft
 #doi: 10.5281/zenodo......
 authors:
+#- name: Arno Kesper
+#  orcid: 0000-0002-5042-1087
+#  affiliations:
+#   - name: Verbundzentrale des GBV (VZG)
+# - name: Markus Matoni
+#   orcid: 0000-0003-4389-5871
+#  affiliations:
+#   - name: Verbundzentrale des GBV (VZG)
 #- name: Jakob Voß
 #  orcid: 0000-0002-7613-4123
 #  affiliations:
 #   - name: Verbundzentrale des GBV (VZG)
+
 abstract: |
  This document specifies a set of data formats for pattern-based quality analysis.
 ---
@@ -18,6 +27,7 @@ abstract: |
 ## Overview
 
 - A [Constraint Pattern] is an abstract definition of a function that gets a set of parameters and a document as input and returns an analysis result report
+- A [Data Model] is a set of documented elements from a specific data format
 - A [Constraint] is a reference to a constraint pattern with all parameters set to specific values
 - A [Constraint Template] is a reference to a constraint with optional parameter values and a sentence where part of the sentence are mapped to parameters
 - An [Analysis Result] lists elements of a document together with references to constraints and whether their conditions have been met in the document
@@ -28,27 +38,137 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHOULD", "SHOULD NOT", "RECOMMEND
 
 <!--Only section @sec-errors to @sec-dimensions, excluding examples and notes, and the [list of normative references](#normative-references) are normative parts of this specification.-->
 
-# Parameters
+# Data Model
 
-_Here we need to define data types (number, list, XPath expression...)_
+A **Data Model** is a JSON object with:
+
+- `id` - identifier of the model
+- `title` - title of the model
+- `format` - the underlying base format (`xml`, `json`, `rdf`, `csv`, `pica`... this list needs to be defiend)
+- `elements` - a set of elements, given as JSON array. Each element is a JSON object with:
+  - `path` - machine-processable location of the element. Syntax and semantics depends on the `format`, for instance format `xml` implies XPath syntax
+  - `label` - human-readable label, tagged by language code for multilinguality
+
+Data models can often be derived from schema files (XML Schema, JSON Schema, Avram Schema...) by extraction of elements and labels.
+
+Example:
+
+~~~json
+{
+  "id": "lido-1.1",
+  "title": "LIDO 1.1",
+  "format": "xml",
+  "elements": [
+    {
+      "path": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
+      "label": { "en": "Resource Representation" }
+    },
+    {
+      "path": "//@*[name()='lido-type']",
+      "label": { "en": "Type" }
+    }
+  ]
+}
+~~~
 
 # Constraint Pattern
 
 An **Constraint Pattern** (or **Pattern**) is a JSON object with:
 
-...
+- `id` - identifier of the pattern
+- `description` - human-readble description (English)
+- `parameters` - parameters of the pattern, given as JSON object mapping parameter name to parameter definition. Each parameter definition is a JSON Objects with
+  - `type` - the data type. One of `path`, `number`, `comparator`, `list`... (this needs to be defined)
+
+Example:
+
+~~~json
+{
+  "id": "MandAtt",
+  "description": "Checks that an element contains another element",
+  "parameters": {
+    "elem" : { "type": "path" },
+    "prop": { "type": "path" }
+  }
+}
+~~~
 
 # Constraint
 
-An **Constraint** is a JSON object with: 
+A **Constraint** is a JSON object with: 
 
-...
+- `id` ...
+- `format` ...
+- `model` ...
+- `pattern` REQUIRED ...
+- `fragments` OPTIONAL, only meant for communication with humans. MUST be ignored for execution/analysis!
+- `parameters` parameter values. If `fragments` is given, `parameters` MUST be derived automatically from `fragments` for consistency
+
+Property names MUST match parameter names of the referenced `pattern`
+
+Example:
+
+~~~json
+{
+  "id": "Q04.8a",
+  "format": "xml",
+  "model": "lido-1.1",
+  "title": "Resource Representation Has Required Type",
+  "pattern": "MandAtt",
+  "fragments": [
+    { "text": "Each" },
+    { 
+      "parameter": "elem", 
+      "value": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"
+    },
+    { "text": "has a" },
+    {
+      "parameter": "prop",
+      "value": "//@*[name()='lido-type']"
+    },
+    { "text": "." }
+  ],
+  "parameter": {
+     "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
+     "prop": "//@*[name()='lido-type']"
+  },
+  "keywords": [ "DDB" ]
+}
+~~~
+
+Example (minimal form for checking/execution/analysis):
+
+~~~json
+{
+  "pattern": "MandAtt",
+  "format": "xml",
+  "parameters": {
+     "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
+     "prop": "//@*[name()='lido-type']"
+  }
+}
+~~~
 
 # Constraint Template
 
-An **Constraint Template** (or **Template**) is a JSON object with:
+A **Constraint Template** (or **Template**) is a [Constraint] with some or all parameters not set.
 
 ...
+
+Example:
+
+~~~json
+{
+  "pattern": "MandAtt",
+  "fragments": [
+    { "text": "Each" },
+    { "parameter": "elem" },
+    { "text": "has a" },
+    { "parameter": "prop" },
+    { "text": "." }
+  ]
+}
+~~~
 
 # Analysis Result
 
