@@ -44,9 +44,10 @@ A **Data Model** is a JSON object with:
 
 - `id` - identifier of the model
 - `title` - title of the model
-- `format` - the underlying base format (`xml`, `json`, `rdf`, `csv`, `pica`... this list needs to be defiend)
-- `elements` - a set of elements, given as JSON array. Each element is a JSON object with:
-  - `path` - machine-processable location of the element. Syntax and semantics depends on the `format`, for instance format `xml` implies XPath syntax
+- `format` - the underlying base format (`xml`, `json`, `rdf`, `csv`, `pica`... this list needs to be defined)
+- `elements` - a set of elements, given as JSON object. Each element is a JSON object with:
+  - `paths` - JSON array of strings with machine-processable location of the element. Syntax and semantics depends on the `format`, for instance format `xml` implies XPath syntax
+  - `language` - language of paths. There is a default for each `format`, e.g. language `xpath` for format `xml`
   - `label` - human-readable label, tagged by language code for multilinguality
 
 Data models can often be derived from schema files (XML Schema, JSON Schema, Avram Schema...) by extraction of elements and labels.
@@ -58,18 +59,20 @@ Example:
   "id": "lido-1.1",
   "title": "LIDO 1.1",
   "format": "xml",
-  "elements": [
-    {
-      "path": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
+  "elements": {
+    "resource-representation": {
+      "paths": ["//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"],
       "label": { "en": "Resource Representation" }
     },
-    {
-      "path": "//@*[name()='lido-type']",
+    "lido-type": {
+      "paths": ["//@lido-type"],
       "label": { "en": "Type" }
     }
-  ]
+  }
 }
 ~~~
+
+The elements of `paths` are equal alternatives. For instance XPath pathes `["//foo","//bar"]` and `["//foo|//bar"]` are equivalent because XPath expressions can be joined with `|`.
 
 # Constraint Pattern
 
@@ -78,7 +81,7 @@ An **Constraint Pattern** (or **Pattern**) is a JSON object with:
 - `id` - identifier of the pattern
 - `description` - human-readble description (English)
 - `parameters` - parameters of the pattern, given as JSON object mapping parameter name to parameter definition. Each parameter definition is a JSON Objects with
-  - `type` - the data type. One of `path`, `number`, `comparator`, `list`... (this needs to be defined)
+  - `type` - the data type. One of `path`, `number`, `url`, `comparator`, `list`... (this needs to be defined)
 
 Example:
 
@@ -124,13 +127,13 @@ Example:
     { "text": "has a" },
     {
       "parameter": "prop",
-      "value": "//@*[name()='lido-type']"
+      "value": "//@lido-type"
     },
     { "text": "." }
   ],
   "parameter": {
      "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
-     "prop": "//@*[name()='lido-type']"
+     "prop": "//@lido-type"
   },
   "keywords": [ "DDB" ]
 }
@@ -144,7 +147,7 @@ Example (minimal form for checking/execution/analysis):
   "format": "xml",
   "parameters": {
      "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
-     "prop": "//@*[name()='lido-type']"
+     "prop": "//@lido-type"
   }
 }
 ~~~
@@ -235,11 +238,43 @@ The analysis result format is based on [Validation Error Format](https://gbv.git
 
 -->
 
-# Appendices {.unnumbered}
+# Appendices {-}
 
-## JSON Schemas {.unnumbered}
+## Base Formats {-}
+
+| Base Format    | Path Languages |
+|----------------|-----------------------|
+| `xml`          | `xpath`               |
+| `json`, `yaml` | `jsonpath`, `jsonpointer` |
+| `csv`          | `rfc7111`, `column` ... |
+| `avram`        | ...  |
+| `rdf`          | ...  |
+
+## JSON Schemas {-}
 
 Constraint, Constraint Patterns and Constraint Templates can be validated each with one of the following non-normative JSON Schemas:
 
 ...
+
+## Examples {-}
+
+### SHACL Constraing Pattern
+
+~~~json
+{
+  "id": "Validation",
+  "description": "Checks that data is valid against a Schema",
+  "parameters": {
+    "schema" : {
+      "type": "url"
+      "description": "Location of the Schema"
+    },
+    "language": {
+      "type": "enum",
+      "values": ["xsd", "shacl", "avram"]
+    }
+  }
+}
+~~~
+
 
