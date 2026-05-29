@@ -26,8 +26,8 @@ abstract: |
 
 ## Overview
 
-- A [Constraint Pattern] is an abstract definition of a function that gets a set of parameters and a document as input and returns an analysis result report
 - A [Data Model] is a set of documented elements from a specific data format
+- A [Constraint Pattern] is an abstract definition of a function that gets a set of parameters and a document as input and returns an analysis result report
 - A [Constraint] is a reference to a constraint pattern with all parameters set to specific values
 - A [Constraint Template] is a reference to a constraint with optional parameter values and a sentence where part of the sentence are mapped to parameters
 - An [Analysis Result] lists elements of a document together with references to constraints and whether their conditions have been met in the document
@@ -38,145 +38,187 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHOULD", "SHOULD NOT", "RECOMMEND
 
 <!--Only section @sec-errors to @sec-dimensions, excluding examples and notes, and the [list of normative references](#normative-references) are normative parts of this specification.-->
 
+# Data Types
+
+The format of [data model], [constraint pattern], [constraint template], [constraint], and [analysis result] are defined based on JSON. The specification refers to the following data types based on the basic JSON data types **object** with pairs of fields and values, **array** with members, **string**, **number**, **boolean** and **null**.
+
+## language tag
+
+A **language tag** is a non-empty string that conforms to the syntax of [RFC 5646] language tags limited to lowercase plain languages (grammar rule `language` of the specification).
+
+## name
+
+A **name** is a string starting with a letter (`a` to `z`), optionally followed by more letters, digits (`0` to `9`), and minus (`-`).
+
+## URI
+
+An **URI** is a syntactically correct IRI ([RFC 3987]).
+
+# Base Format
+
+A base format is a **name** referencing a set of abstract documents with some internal structure.
+
+::: {#exm-base-format}
+Base format `xml` references [XML documents](https://www.w3.org/TR/REC-xml) with a hierarchical structure (XML Elements, Attributes...) defined by [XML Information Set](http://www.w3.org/TR/xml-infoset/).
+:::
+
+*See [Appendix Base Formats](#base-formats) for a preliminary list of base formats and their path languages*
+
+# Pathes
+
+[path language]: #pathes
+
+A **path language** is a set of strings following a defined syntax and semantics to reference elements and/or subsets of documents of some [base format].
+
+A **path** is a string conforming to a **path language**.
+
+::: {#exm-path-language}
+## Examples
+Path language `xpath` follows XPath syntax and semantics to reference elements or subsets of XML documents (base format `xml`). For instance path `//record/@id` refers to every XML Attribute with name `id` of any XML Element with name `record`.
+:::
+
+
 # Data Model
 
-A **Data Model** is a JSON object with:
+A **data Model** is a JSON object with the following fields:
 
-- `id` - identifier of the model
+- `id` - identifier of the model. SHOULD be an URI.
 - `title` - title of the model
-- `format` - the underlying base format (`xml`, `json`, `rdf`, `csv`, `pica`... this list needs to be defined)
-- `elements` - a set of elements, given as JSON object. Each element is a JSON object with:
-  - `paths` - JSON array of strings with machine-processable location of the element. Syntax and semantics depends on the `format`, for instance format `xml` implies XPath syntax
-  - `language` - language of paths. There is a default for each `format`, e.g. language `xpath` for format `xml`
-  - `label` - human-readable label, tagged by language code for multilinguality
+- `format` - a [base format]
+- `language` - a [path language] (set to a default value for each base format, e.g. `xpath` for `xml`)
+- `elements` - a set of elements, given as JSON object with fields being [names](#name) and values being **elements**
 
-Data models can often be derived from schema files (XML Schema, JSON Schema, Avram Schema...) by extraction of elements and labels.
+An **element** is a JSON object with the following fields:
 
-Example:
-
-~~~json
-{
-  "id": "lido-1.1",
-  "title": "LIDO 1.1",
-  "format": "xml",
-  "elements": {
-    "resource-representation": {
-      "paths": ["//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"],
-      "label": { "en": "Resource Representation" }
-    },
-    "lido-type": {
-      "paths": ["//@lido-type"],
-      "label": { "en": "Type" }
-    }
-  }
-}
-~~~
+- `label` - human-readable labels given as JSON object with fields being [language tags](#language-tag) and values being non-empty strings.
+- `paths` - a JSON array with a set of [pathes]
+- `language` - a [path language], set to the value of `language` of the data model by default.
 
 The elements of `paths` are equal alternatives. For instance XPath pathes `["//foo","//bar"]` and `["//foo|//bar"]` are equivalent because XPath expressions can be joined with `|`.
 
-# Constraint Pattern
+::: {.callout-tip appearance="simple"}
+Data models can often be derived from schema files (XML Schema, JSON Schema, OWL Ontology, Avram Schema...) by extraction of elements and labels.
+:::
 
-An **Constraint Pattern** (or **Pattern**) is a JSON object with:
-
-- `id` - identifier of the pattern
-- `description` - human-readble description (English)
-- `parameters` - parameters of the pattern, given as JSON object mapping parameter name to parameter definition. Each parameter definition is a JSON Objects with
-  - `type` - the data type. One of `path`, `number`, `url`, `comparator`, `list`... (this needs to be defined)
-
-Example:
-
-~~~json
+::: {#exm-data-model}
+```json
 {
-  "id": "MandAtt",
-  "description": "Checks that an element contains another element",
-  "parameters": {
-    "elem" : { "type": "path" },
-    "prop": { "type": "path" }
+  "id": "records-1.0",
+  "title": "Record Format 1.0",
+  "format": "xml",
+  "elements": {
+    "record": {
+      "paths": ["//record"],
+      "label": { "en": "Record", "de": "Datensatz" }
+    },
+    "id": {
+      "paths": ["//@id"],
+      "label": { "en": "identifier", "de": "ID" }
+    }
   }
 }
-~~~
+```
+A data model for an XML format with XPath pathes.
+:::
 
 # Constraint
 
-A **Constraint** is a JSON object with: 
+A **Constraint** is a JSON object with the following fields: 
 
-- `id` ...
-- `format` ...
-- `model` ...
-- `pattern` REQUIRED ...
-- `fragments` OPTIONAL, only meant for communication with humans. MUST be ignored for execution/analysis!
-- `parameters` parameter values. If `fragments` is given, `parameters` MUST be derived automatically from `fragments` for consistency
+- `id` (OPTIONAL) - identifier of the constraint. SHOULD be an URI.
+- `pattern` (REQUIRED) - identifier of a [constraint pattern]
+- `format` (REQUIRED) - a [base format]
+- `model` (OPTIONAL) - identifier of a [data model]. Value of `format` of constraint and data model MUST be identical.
+- `parameters` (REQUIRED) - a JSON object with fields being the parameter names of the [constraint pattern] and values matching to the parameter type.
+- *... (OPTIONAL) metadata field such as `keywords`, `created`...*
 
-Property names MUST match parameter names of the referenced `pattern`
+xample (minimal form for checking/execution/analysis):
 
-Example:
-
-~~~json
+::: {#exm-data-model}
+```json
 {
-  "id": "Q04.8a",
-  "format": "xml",
-  "model": "lido-1.1",
-  "title": "Resource Representation Has Required Type",
-  "pattern": "MandAtt",
-  "fragments": [
-    { "text": "Each" },
-    { 
-      "parameter": "elem", 
-      "value": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation"
-    },
-    { "text": "has a" },
-    {
-      "parameter": "prop",
-      "value": "//@lido-type"
-    },
-    { "text": "." }
-  ],
-  "parameter": {
-     "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
-     "prop": "//@lido-type"
-  },
-  "keywords": [ "DDB" ]
-}
-~~~
-
-Example (minimal form for checking/execution/analysis):
-
-~~~json
-{
-  "pattern": "MandAtt",
+  "pattern": "MandatoryChild",
   "format": "xml",
   "parameters": {
-     "elem": "//lido/administrativeMetadata/resourceWrap/resourceSet/resourceRepresentation",
-     "prop": "//@lido-type"
+     "parent": "//record",
+     "child": "//@id"
   }
 }
-~~~
+```
+A constraint for the data model above.
+:::
+
+
+# Constraint Pattern
+
+An **Constraint Pattern** is a JSON object with:
+
+- `id` (OPTIONAL) - identifier of the pattern
+- `description` - human-readble description (English) *TODO: multi-lingual?*
+- `formats` (OPTIONAL) - list of [base formats](#base-formats) this pattern can be applied to
+- `parameters` (REQUIRED) - parameters of the pattern, given as JSON object mapping parameter [names](#name) to **parameter definition**
+
+A **parameter definition** is a JSON Objects with:
+
+- `type` - the data type. One of `path`, `number`, `url`, `comparator`, `list`... (this needs to be defined)
+- ...
+
+::: {#exm-pattern}
+```json
+{
+  "id": "MandatoryChild",
+  "description": "Checks that an element contains at least one other element",
+  "parameters": {
+    "parent" : { "type": "path" },
+    "child": { "type": "path" }
+  }
+}
+```
+:::
+
 
 # Constraint Template
 
-A **Constraint Template** (or **Template**) is a [Constraint] with some or all parameters not set.
+A **Constraint Template** is a JSON object with the following fields:
 
-...
+- `id` (OPTIONAL) - identifier of the template. SHOULD be an URI.
+- `pattern` (REQUIRED) - identifier of a [constraint pattern].
+- `sentence` (REQUIRED) - a JSON object with fields being [language tags] and values being JSON arrays of **fragments**.
 
-Example:
 
-~~~json
+- `parameters` (OPTIONAL) - a JSON object with some fields being parameter names of the [constraint pattern] and values matching to the parameter type.
+
+If `parameter` contains *all* parameters of the [constraint template], the constraint template can automatically be converted into a [constraint].
+
+::: {.callout-note appearance="simple"}
+Sentences and fragments can be converted into messages in [Unicode MessageFormat 2.0](https://unicode.org/reports/tr35/tr35-messageFormat.html) (MF2) and a later version of this standard *may* support more of its features for better internationalization.
+:::
+
+::: {#exm-template}
+```json
 {
-  "pattern": "MandAtt",
-  "fragments": [
-    { "text": "Each" },
-    { "parameter": "elem" },
-    { "text": "has a" },
-    { "parameter": "prop" },
-    { "text": "." }
-  ]
+  "pattern": "MandatoryChild",
+  "sentence": {
+    "en": [ 
+      { "text": "Each" },
+      { "parameter": "parent" },
+      { "text": "has at least one" },
+      { "parameter": "child" },
+      { "text": "." }
+    ] 
+  }
 }
-~~~
+```
+A constraint template. 
+:::
+
+# Processor
+
+A **processor** gets a document with known [base format] and a set of [constraints] as input and returns an [analysis report] as output.
 
 # Analysis Result
 
-The analysis result format is based on [Validation Error Format](https://gbv.github.io/validation-error-format/).
-
+*The analysis result format will be based on [Validation Error Format](https://gbv.github.io/validation-error-format/).*
 
 # References
 
@@ -186,9 +228,14 @@ The analysis result format is based on [Validation Error Format](https://gbv.git
 ## Normative References
 
 [RFC 2119]: https://tools.ietf.org/html/rfc2119
+[RFC 3987]: https://tools.ietf.org/html/rfc3987
 [RFC 5234]: https://tools.ietf.org/html/rfc5234
+[RFC 5646]: https://tools.ietf.org/html/rfc5646
 [RFC 8174]: https://tools.ietf.org/html/rfc8174
 [RFC 8259]: https://tools.ietf.org/html/rfc8259
+
+- Dürst, M. and Suignard, M.: _Internationalized Resource Identifiers (IRIs)_.
+  RFC 3987, January 2005. <https://tools.ietf.org/html/rfc3987>
 
 - Berners-Lee, T. and Fielding, R. and Masinter, L.: _Uniform Resource Identifier (URI): Generic Syntax_.
   RFC 3986, January 2005,
@@ -202,13 +249,6 @@ The analysis result format is based on [Validation Error Format](https://gbv.git
   RFC 8259, December 2017. <https://tools.ietf.org/html/rfc8259>
 
 <!--
-- Bray, T. et. al.: _Namespaces in XML 1.0 (Third Edition)_.
-  W3C Recommendation, December 2009.
-  <https://www.w3.org/TR/REC-xml-names/>
-  
-- Bryan, P and Zyp, K. and Nottigham, M.: *JavaScript Object Notation (JSON) Pointer*.
-  RFC 6901, April 2023. <https://tools.ietf.org/html/rfc6901>
-
 - D. Crocker and P. Overell: *Augmented BNF for Syntax Specifications: ABNF*.
   RFC 5234, January 2008.
   <https://www.rfc-editor.org/rfc/rfc5234>
@@ -219,28 +259,31 @@ The analysis result format is based on [Validation Error Format](https://gbv.git
 
 -->
 
+- Phillips, A. and Davis, E.: _Tags for Identifying Languages_.
+  RFC 5646: BCP 47, September 2009. <https://tools.ietf.org/html/rfc5646>
+
 - Voß, J: _Validation Error Format_.
   May 2026
   <https://gbv.github.io/validation-error-format/>
 
 ## Informative references
 
-...
-
-<!--
 - [JSON Schema](https://json-schema.org/) schema language
 
-- J. Clark and S. DeRose: *XML Path Language (XPath) Version 1.0. 
+<!--
+- Bryan, P and Zyp, K. and Nottigham, M.: _JavaScript Object Notation (JSON) Pointer_.
+  RFC 6901, April 2023. <https://tools.ietf.org/html/rfc6901>
+-->
+
+- J. Clark and S. DeRose: _XML Path Language (XPath) Version 1.0_. 
   W3C Recommendation, November 1999.
   <https://www.w3.org/TR/xpath-10/>
 
-- [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) defines an extensible error format with fields `type` (`types` in this format), `status`, `title`, `detail` (`message` in this format), `instance` (`position` but as one URI). The example given in the specification is similar to this format.
-
--->
+- ...
 
 # Appendices {-}
 
-## Base Formats {-}
+## Base Formats {.unnumbered #base-formats}
 
 | Base Format    | Path Languages |
 |----------------|-----------------------|
@@ -258,23 +301,55 @@ Constraint, Constraint Patterns and Constraint Templates can be validated each w
 
 ## Examples {-}
 
-### SHACL Constraing Pattern
+### Cardinality Constraint Pattern
+
+```json
+{
+  "description": "Checks that an element exists a specific number of times"
+  "parameters": {
+    "element": {
+      "type": "path",
+      "description": "The element being counted"
+    },
+    "comparator": {
+      "type": "comparator",
+      "description": "Whether the number of times must be equal, larger, or smaller than the cardinality"
+    },
+    "cardinality": {
+      "type": "natural-number",
+      "description": "Number of times the element must exist"
+    }
+  }
+}
+```
+
+### AND pattern
+
+```json
+{
+  "description": "Combines multiple constraints",
+  "parameters": {
+    "constraint": {
+      "type": "constraint",
+      "repeatable": true
+    }
+  }
+}
+```
+
+### SHACL Constraint Pattern
 
 ~~~json
 {
-  "id": "Validation",
-  "description": "Checks that data is valid against a Schema",
+  "id": "XSDValidation",
+  "description": "Checks that XML data is valid against an XML Schema",
+  "models": [ "xml" ],
   "parameters": {
     "schema" : {
       "type": "url"
       "description": "Location of the Schema"
-    },
-    "language": {
-      "type": "enum",
-      "values": ["xsd", "shacl", "avram"]
     }
   }
 }
 ~~~
-
 
